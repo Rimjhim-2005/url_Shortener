@@ -1,24 +1,53 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
 const app = express();
+
+app.use(express.urlencoded({ extended: false }));
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 
-app.use('/public', express.static(`${process.cwd()}/public`));
+app.use("/public", express.static(`${process.cwd()}/public`));
 
-app.get('/', function(req, res) {
-  res.sendFile(process.cwd() + '/views/index.html');
+app.get("/", function (req, res) {
+  res.sendFile(process.cwd() + "/views/index.html");
 });
 
 // Your first API endpoint
-app.get('/api/hello', function(req, res) {
-  res.json({ greeting: 'hello API' });
+app.get("/api/hello", function (req, res) {
+  res.json({ greeting: "hello API" });
 });
 
-app.listen(port, function() {
+const urls = [];
+
+app.post("/api/shorturl", function (req, res) {
+  const ori = req.body.url;
+
+  try {
+    new URL(ori);
+  } catch (err) {
+    return res.json({ error: "invalid url" });
+  }
+
+  const short_url = urls.length;
+  urls.push(ori);
+
+  res.json({ original_url: ori, short_url: short_url });
+});
+
+app.get("/api/shorturl/:short_url", function (req, res) {
+  const id = req.params.short_url;
+  const original = urls[id];
+
+  if (!original) {
+    return res.json({ error: "short url not found" });
+  }
+  res.redirect(original);
+});
+
+app.listen(port, function () {
   console.log(`Listening on port ${port}`);
 });
