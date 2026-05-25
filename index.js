@@ -27,7 +27,11 @@ app.post("/api/shorturl", function (req, res) {
   const ori = req.body.url;
 
   try {
-    new URL(ori);
+    const url = new URL(ori);
+
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new Error("invalid protocol");
+    }
   } catch (err) {
     return res.json({ error: "invalid url" });
   }
